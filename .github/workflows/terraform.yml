@@ -1,0 +1,60 @@
+name: 'Terraform Apply'
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_location: "West US 2"
+      TF_VAR_resource_group_name: ${{ secrets.RESOURCE_GROUP_NAME }}
+      TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+      TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
+      TF_VAR_aks_cluster_name: ${{ secrets.AKS_CLUSTER_NAME }}
+      TF_VAR_node_vm_size: "Standard_D2s_v3"
+      TF_VAR_vnet_cidr: "10.0.0.0/16"
+      TF_VAR_subnet_cidr: "10.0.1.0/24"
+      TF_VAR_service_cidr: "10.1.0.0/16"
+      TF_VAR_dns_service_ip: "10.1.0.10"
+      TF_VAR_acr_name: ${{ secrets.ACR_NAME }}
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI 
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+     
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
+      
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check
+      
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      run: terraform plan -input=false
+      
+    # On push to "master", build or change infrastructure according to Terraform configuration files
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -input=false
