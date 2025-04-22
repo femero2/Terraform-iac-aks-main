@@ -18,7 +18,7 @@ variable "resource_group_name" {
 variable "storage_account_name" {
   description = "The name of the Azure Storage Account"
   type        = string
-  default     = "storageaccountpvb"
+  default     = "storageaccountfmr"
 }
 
 variable "container_name" {
